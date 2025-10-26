@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 mod state;
+mod ghost_state;
 mod pyo3_bindings;
 
 #[pymodule]
