@@ -40,7 +40,7 @@ impl GameEngine {
         let just_ticked = true;
 
         loop {
-            
+
             if just_ticked { //also add update ready function 
                 //game state functions to be executed go here
             
@@ -48,6 +48,10 @@ impl GameEngine {
 
 
 
-    }
+
+        }
+        
+    //if game isn't paused
+    ticker.tick().await;
 
 }
