@@ -18,7 +18,7 @@ impl PyGameGhostState {
     pub fn setfright_steps(&mut self, steps: u8) {
         self.ghost_state.setfright_steps(steps) 
     }
-
+    
     // Decrement the fright steps of a ghost
     pub fn decfright_steps(&mut self) {
         self.ghost_state.decfright_steps()

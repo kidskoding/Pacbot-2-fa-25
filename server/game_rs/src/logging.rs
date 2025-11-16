@@ -30,4 +30,3 @@ impl Logging {
         guard.command_log_enabled = enabled
     }
 }
-

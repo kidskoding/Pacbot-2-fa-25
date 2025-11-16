@@ -4,6 +4,7 @@ mod state;
 mod ghost_state;
 mod pyo3_bindings;
 mod commands;
+mod location;
 mod logging;
 
 #[pymodule]
