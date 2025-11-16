@@ -7,6 +7,6 @@
 - [ ] Do Game Modes
 - [ ] Do Ghost Helpers 
 - [x] Do Ghost State - Kalil finish
-- [ ] Do Location 
+- [x] Do Location 
 - [x] Do Logging - Anirudh finished 
 - [ ] Do Variables
