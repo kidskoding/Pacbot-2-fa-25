@@ -6,6 +6,8 @@ mod pyo3_bindings;
 mod commands;
 mod location;
 mod logging;
+mod engine;
+mod direction;
 
 #[pymodule]
 pub fn game_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
