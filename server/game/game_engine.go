@@ -6,192 +6,193 @@ import (
 	"time"
 )
 
-// Keep track of number of active game engines (should only be one)
-var activeGameEngines = 0
+// keep track of number of active game engines (should only be one)
+var activegameengines = 0
 
-// Mutex to protect numActiveGameEngines
-var muAGE sync.Mutex
+// mutex to protect numactivegameengines
+var muage sync.mutex
 
 /*
-A game engine object, to act as an intermediary between the web broker
+a game engine object, to act as an intermediary between the web broker
 and the internal game state - its responsibility is to read responses from
 clients and routinely send serialized copies of the game state to them
 */
-type GameEngine struct {
-	quitCh      chan struct{}
-	webOutputCh chan<- []byte
-	webInputCh  <-chan []byte
-	state       *gameState
-	ticker      *time.Ticker    // serves as the game clock
-	wgQuit      *sync.WaitGroup // wait group to make sure it quits safely
+type gameengine struct {
+	quitch      chan struct{}
+	weboutputch chan<- []byte
+	webinputch  <-chan []byte
+	state       *gamestate
+	ticker      *time.ticker    // serves as the game clock
+	wgquit      *sync.waitgroup // wait group to make sure it quits safely
 }
 
-// Create a new game engine, casting channels to be uni-directional
-func NewGameEngine(_webOutputCh chan<- []byte, _webInputCh <-chan []byte,
-	_wgQuit *sync.WaitGroup, clockRate int32) *GameEngine {
+// create a new game engine, casting channels to be uni-directional
+func newgameengine(_weboutputch chan<- []byte, _webinputch <-chan []byte,
+	_wgquit *sync.waitgroup, clockrate int32) *gameengine {
 
-	// Time between ticks
-	_tickTime := 1000000 * time.Microsecond / time.Duration(clockRate)
-	ge := GameEngine{
-		quitCh:      make(chan struct{}),
-		webOutputCh: _webOutputCh,
-		webInputCh:  _webInputCh,
-		state:       newGameState(),
-		ticker:      time.NewTicker(_tickTime),
-		wgQuit:      _wgQuit,
+	// time between ticks
+	_ticktime := 1000000 * time.microsecond / time.duration(clockrate)
+	ge := gameengine{
+		quitch:      make(chan struct{}),
+		weboutputch: _weboutputch,
+		webinputch:  _webinputch,
+		state:       newgamestate(),
+		ticker:      time.newticker(_ticktime),
+		wgquit:      _wgquit,
 	}
 
-	// Return the game engine
+	// return the game engine
 	return &ge
 }
 
-// Quit by closing the game engine, in case the loop ends
-func (ge *GameEngine) quit() {
+// quit by closing the game engine, in case the loop ends
+func (ge *gameengine) quit() {
 
-	// Log that the game engine successfully quit
-	log.Println("\033[35mLOG:  Game engine successfully quit\033[0m")
+	// log that the game engine successfully quit
+	log.println("\033[35mlog:  game engine successfully quit\033[0m")
 
-	// Decrement the quit wait group counter
-	ge.wgQuit.Done()
+	// decrement the quit wait group counter
+	ge.wgquit.done()
 
-	// Free up the ticker
-	ge.ticker.Stop()
+	// free up the ticker
+	ge.ticker.stop()
 }
 
-// Quit function exported to other packages
-func (ge *GameEngine) Quit() {
-	close(ge.quitCh)
+// quit function exported to other packages
+func (ge *gameengine) quit() {
+	close(ge.quitch)
+	
 }
 
-// Start the game engine - should be launched as a go-routine
-func (ge *GameEngine) RunLoop() {
+// start the game engine - should be launched as a go-routine
+func (ge *gameengine) runloop() {
 
-	// Quit if we ever run into an error or the program ends
+	// quit if we ever run into an error or the program ends
 	defer ge.quit()
 
-	// Increment the quit wait group counter
-	ge.wgQuit.Add(1)
+	// increment the quit wait group counter
+	ge.wgquit.add(1)
 
-	// Update the number of active game engines
-	// (Lock the mutex to prevent races in case of a multiple engine issue)
-	var _activeGameEngines int
-	muAGE.Lock()
+	// update the number of active game engines
+	// (lock the mutex to prevent races in case of a multiple engine issue)
+	var _activegameengines int
+	muage.lock()
 	{
-		activeGameEngines++
-		_activeGameEngines = activeGameEngines
+		activegameengines++
+		_activegameengines = activegameengines
 	}
-	muAGE.Unlock()
+	muage.unlock()
 
-	// If there was already a game engine, kill this one and throw an error
-	if _activeGameEngines > 1 {
-		log.Println("\033[35m\033[1mERR:  Cannot simultaneously dispatch more" +
-			" than one game engine. Quitting...\033[0m")
+	// if there was already a game engine, kill this one and throw an error
+	if _activegameengines > 1 {
+		log.println("\033[35m\033[1merr:  cannot simultaneously dispatch more" +
+			" than one game engine. quitting...\033[0m")
 		return
 	}
 
-	// Output buffer to store the serialized output
-	outputBuf := make([]byte, 256)
+	// output buffer to store the serialized output
+	outputbuf := make([]byte, 256)
 
-	// Length of the serialized output
-	serLen := 0
+	// length of the serialized output
+	serlen := 0
 
-	// Flag to keep track of whether the last iteration of the loop was a tick
-	justTicked := true
+	// flag to keep track of whether the last iteration of the loop was a tick
+	justticked := true
 
 	for {
 
 		/*
-			If the game did not just tick, we know it was paused, so we can skip
+			if the game did not just tick, we know it was paused, so we can skip
 			these steps as they were already done during the first paused tick
 		*/
-		if justTicked && ge.state.updateReady() {
-			/* STEP 1: Update the ghost positions if necessary */
+		if justticked && ge.state.updateready() {
+			/* step 1: update the ghost positions if necessary */
 
-			// Update all ghosts at once
-			ge.state.updateAllGhosts()
+			// update all ghosts at once
+			ge.state.updateallghosts()
 
-			// Try to respawn Pacman (if it is at an empty location)
-			ge.state.tryRespawnPacman()
+			// try to respawn pacman (if it is at an empty location)
+			ge.state.tryrespawnpacman()
 
-			// If we should pause upon updating, do so
-			if ge.state.getPauseOnUpdate() {
+			// if we should pause upon updating, do so
+			if ge.state.getpauseonupdate() {
 				ge.state.pause()
-				ge.state.setPauseOnUpdate(false)
+				ge.state.setpauseonupdate(false)
 			}
 
-			// Check for collisions
-			ge.state.checkCollisions()
+			// check for collisions
+			ge.state.checkcollisions()
 
 			/*
-				Decrement all step counters, and decide if the mode, penalty,
+				decrement all step counters, and decide if the mode, penalty,
 				or fruit states should change
 			*/
-			ge.state.handleStepEvents()
+			ge.state.handlestepevents()
 
-			/* STEP 2: Start planning the next ghost moves if an update happened */
+			/* step 2: start planning the next ghost moves if an update happened */
 
-			// Plan the next ghost moves
-			ge.state.planAllGhosts()
+			// plan the next ghost moves
+			ge.state.planallghosts()
 		}
 
-		/* STEP 3: Serialize the current game state to the output buffer */
+		/* step 3: serialize the current game state to the output buffer */
 
-		// Re-serialize the current state
-		serLen = ge.state.serFull(outputBuf, 0)
+		// re-serialize the current state
+		serlen = ge.state.serfull(outputbuf, 0)
 
-		/* STEP 4: Write the serialized game state to the output channel */
+		/* step 4: write the serialized game state to the output channel */
 
-		// Check if a write will be blocked, and try to write the serialized state
-		b := len(ge.webOutputCh) == cap(ge.webOutputCh)
-		start := time.Now()
-		ge.webOutputCh <- outputBuf[:serLen]
+		// check if a write will be blocked, and try to write the serialized state
+		b := len(ge.weboutputch) == cap(ge.weboutputch)
+		start := time.now()
+		ge.weboutputch <- outputbuf[:serlen]
 
 		/*
-			If the write was blocked for too long (> 1ms), send a warning
+			if the write was blocked for too long (> 1ms), send a warning
 			to the terminal
 		*/
 		if b {
-			wait := time.Since(start)
-			if wait > time.Millisecond {
-				log.Printf("\033[35mWARN: The game engine output channel was "+
+			wait := time.since(start)
+			if wait > time.millisecond {
+				log.printf("\033[35mwarn: the game engine output channel was "+
 					"full (%s)\033[0m\n", wait)
 			}
 		}
 
-		/* STEP 5: Read the input channel and update the game state accordingly */
+		/* step 5: read the input channel and update the game state accordingly */
 	read_loop:
 		for {
 			select {
-			// If we get a message from the web broker, handle it
-			case msg := <-ge.webInputCh:
-				rst := ge.state.interpretCommand(msg)
-				if rst { // Reset if necessary
-					ge.state = newGameState()
-					ge.state.updateAllGhosts()
-					ge.state.handleStepEvents()
-					ge.state.planAllGhosts()
-					justTicked = true
+			// if we get a message from the web broker, handle it
+			case msg := <-ge.webinputch:
+				rst := ge.state.interpretcommand(msg)
+				if rst { // reset if necessary
+					ge.state = newgamestate()
+					ge.state.updateallghosts()
+					ge.state.handlestepevents()
+					ge.state.planallghosts()
+					justticked = true
 				}
 			default:
 				break read_loop
 			}
 		}
 
-		/* STEP 6: Update the game state for the next tick */
+		/* step 6: update the game state for the next tick */
 
-		// Increment the number of ticks
-		if !ge.state.isPaused() {
-			justTicked = true
-			ge.state.nextTick()
+		// increment the number of ticks
+		if !ge.state.ispaused() {
+			justticked = true
+			ge.state.nexttick()
 		} else {
-			justTicked = false
+			justticked = false
 		}
 
-		/* STEP 5: Wait for the ticker to complete the current frame */
+		/* step 5: wait for the ticker to complete the current frame */
 		select {
-		case <-ge.ticker.C:
-		// If we get a quit signal, quit this broker
-		case <-ge.quitCh:
+		case <-ge.ticker.c:
+		// if we get a quit signal, quit this broker
+		case <-ge.quitch:
 			return
 		}
 	}

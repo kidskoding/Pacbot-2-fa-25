@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  pacman-game-rs:
+    build: .
+    ports:
+      - "8080:8080"
+    command: python3 test_game.py
+    stdin_open: true
+    tty: true

@@ -1,6 +1,9 @@
 # Python
 pac-venv/
 
+# Leo's Python venv
+.pacbot-game/
+
 # Rust Stuffy
 Cargo.lock
 target/

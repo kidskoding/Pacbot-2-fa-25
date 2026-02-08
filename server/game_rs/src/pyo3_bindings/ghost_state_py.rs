@@ -1,77 +1,89 @@
+// pyo3 bindings for ghost_state.rs
+
 use pyo3::prelude::*;
-use crate::ghost_state::{self, GhostState};
+use crate::ghost_state::GhostState;
 
 #[pyclass]
-pub struct PyGameGhostState {
-    ghost_state: GhostState
+pub struct PyGhostState {
+    inner: GhostState,
 }
 
 #[pymethods]
-impl PyGameGhostState {
+impl PyGhostState {
     #[new]
-    pub fn new() -> Self {
+    pub fn new(color: u8) -> Self {
         Self {
-            ghost_state: GhostState::new()
-        } 
+            inner: GhostState::new(color),
+        }
     }
 
-    pub fn setfright_steps(&mut self, steps: u8) {
-        self.ghost_state.setfright_steps(steps) 
+    pub fn get_pos(&self) -> (i8, i8) {
+        self.inner.loc.get_coords()
     }
 
-    // Decrement the fright steps of a ghost
-    pub fn decfright_steps(&mut self) {
-        self.ghost_state.decfright_steps()
+    pub fn get_next_pos(&self) -> (i8, i8) {
+        self.inner.next_loc.get_coords()
     }
 
-    // Get the fright steps of a ghost
-    pub fn getfright_steps(&self) -> u8 {
-        self.ghost_state.getfright_steps()
+    pub fn get_color(&self) -> u8 {
+        self.inner.color
     }
 
-    // Check if a ghost is frightened
-    pub fn isFrightened(&self) -> bool {
-        self.ghost_state.isFrightened()
+    pub fn set_fright_steps(&mut self, steps: u8) {
+        self.inner.set_fright_steps(steps);
     }
 
-    /****************************** Ghost Trap State ******************************/
-
-    // Set the trapped steps of a ghost
-    pub fn settrapped_steps(&mut self, steps: u8) {
-        self.ghost_state.settrapped_steps(steps)
+    pub fn dec_fright_steps(&mut self) {
+        self.inner.dec_fright_steps();
     }
 
-    // Decrement the trapped steps of a ghost
-    pub fn dectrapped_steps(&mut self) {
-        self.ghost_state.dectrapped_steps()
+    pub fn get_fright_steps(&self) -> u8 {
+        self.inner.get_fright_steps()
     }
 
-    // Check if a ghost is trapped
-    pub fn isTrapped(&self) -> bool {
-        self.ghost_state.isTrapped()
+    pub fn is_frightened(&self) -> bool {
+        self.inner.is_frightened()
     }
 
-    /**************************** Ghost Spawning State ****************************/
-
-    // Set the ghost spawning flag
-    pub fn setSpawning(&mut self, spawning: bool) {
-        self.ghost_state.setSpawning(spawning)
+    pub fn set_trapped_steps(&mut self, steps: u8) {
+        self.inner.set_trapped_steps(steps);
     }
 
-    // Check if a ghost is spawning
-    pub fn isSpawning(&self) -> bool {
-        self.ghost_state.isSpawning()
+    pub fn dec_trapped_steps(&mut self) {
+        self.inner.dec_trapped_steps();
     }
 
-    /****************************** Ghost Eaten Flag ******************************/
-
-    // Set the ghost eaten flag
-    pub fn setEaten(&mut self, eaten: bool) {
-        self.ghost_state.setEaten(eaten)
+    pub fn is_trapped(&self) -> bool {
+        self.inner.is_trapped()
     }
 
-    // Check if a ghost is eaten
-    pub fn isEaten(&self) -> bool {
-        self.ghost_state.eaten
+    pub fn set_spawning(&mut self, spawning: bool) {
+        self.inner.set_spawning(spawning);
+    }
+
+    pub fn is_spawning(&self) -> bool {
+        self.inner.is_spawning()
+    }
+
+    pub fn set_eaten(&mut self, eaten: bool) {
+        self.inner.set_eaten(eaten);
+    }
+
+    pub fn is_eaten(&self) -> bool {
+        self.inner.is_eaten()
+    }
+
+    pub fn __repr__(&self) -> String {
+        let (row, col) = self.inner.loc.get_coords();
+        format!(
+            "PyGhostState(color={}, pos=({}, {}), fright={}, trapped={}, spawning={}, eaten={})",
+            self.inner.color,
+            row,
+            col,
+            self.inner.fright_steps,
+            self.inner.trapped_steps,
+            self.inner.spawning,
+            self.inner.eaten,
+        )
     }
 }
