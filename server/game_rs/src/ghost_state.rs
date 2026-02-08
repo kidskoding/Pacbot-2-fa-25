@@ -1,103 +1,100 @@
-// ghost_state.rs - controls the state of the ghost
+// ghost_state.rs - Ghost state management, ported from Go ghost_state.go
 
 use serde::{Deserialize, Serialize};
 
-use crate::state::GameState;
+use crate::constants::*;
+use crate::location::LocationState;
 
-// Position - A simple struct for the position of an object in PacMan
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct LocationState {
-    pub x: i32,
-    pub y: i32,
-}
-
-// Ghost - Pacmon ghost modeled
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct GhostState {
-  pub loc: LocationState, // Current location
-	pub next_loc: LocationState, // Planned location (for next update)
-	pub scatter_target: LocationState, // Position of (fixed) scatter target
-	pub game: GameState,     // The game state tied to the ghost
-	pub color: u8,
-	pub trapped_steps: u8,
-	pub fright_steps: u8,
-	pub spawning: bool,        // Flag set when spawning
-	pub eaten: bool,        // Flag set when eaten and returning to ghost house
+    pub loc: LocationState,
+    pub next_loc: LocationState,
+    pub scatter_target: LocationState,
+    pub color: u8,
+    pub trapped_steps: u8,
+    pub fright_steps: u8,
+    pub spawning: bool,
+    pub eaten: bool,
 }
 
 impl GhostState {
-    // Sets up a new ghost
-    pub fn new() -> Self {
+    /// Create a new ghost with the given color, initialized from constants
+    pub fn new(color: u8) -> Self {
+        let spawn_locs = ghost_spawn_locs();
+        let scatter_targets = ghost_scatter_targets();
+        let color_idx = color as usize;
+
+        let next_loc = if color >= NUM_ACTIVE_GHOSTS {
+            empty_loc()
+        } else {
+            spawn_locs[color_idx].clone()
+        };
+
         Self {
-            loc: LocationState {x:0, y:0},
-            next_loc: LocationState {x:0, y:0},
-            scatter_target : LocationState {x:0, y:0},
-            game: GameState::new(),
-            color: 0,
-            trapped_steps: 0,
+            loc: empty_loc(),
+            next_loc,
+            scatter_target: scatter_targets[color_idx].clone(),
+            color,
+            trapped_steps: GHOST_TRAPPED_STEPS[color_idx],
             fright_steps: 0,
             spawning: true,
             eaten: false,
         }
     }
-    // Set the fright steps of a ghost
-    pub fn setfright_steps(&mut self, steps: u8) {
-        self.fright_steps = steps; 
+
+    /************************ Ghost Frightened State ************************/
+
+    pub fn set_fright_steps(&mut self, steps: u8) {
+        self.fright_steps = steps;
     }
 
-    // Decrement the fright steps of a ghost
-    pub fn decfright_steps(&mut self) {
-        self.fright_steps-=1;
+    pub fn dec_fright_steps(&mut self) {
+        if self.fright_steps > 0 {
+            self.fright_steps -= 1;
+        }
     }
 
-    // Get the fright steps of a ghost
-    pub fn getfright_steps(&self) -> u8 {
+    pub fn get_fright_steps(&self) -> u8 {
         self.fright_steps
     }
 
-    // Check if a ghost is frightened
-    pub fn isFrightened(&self) -> bool {
+    pub fn is_frightened(&self) -> bool {
         self.fright_steps > 0
     }
 
-    /****************************** Ghost Trap State ******************************/
+    /************************** Ghost Trap State **************************/
 
-    // Set the trapped steps of a ghost
-    pub fn settrapped_steps(&mut self, steps: u8) {
+    pub fn set_trapped_steps(&mut self, steps: u8) {
         self.trapped_steps = steps;
     }
 
-    // Decrement the trapped steps of a ghost
-    pub fn dectrapped_steps(&mut self) {
-        self.trapped_steps-=1;
+    pub fn dec_trapped_steps(&mut self) {
+        if self.trapped_steps > 0 {
+            self.trapped_steps -= 1;
+        }
     }
 
-    // Check if a ghost is trapped
-    pub fn isTrapped(&self) -> bool {
+    pub fn is_trapped(&self) -> bool {
         self.trapped_steps > 0
     }
 
-    /**************************** Ghost Spawning State ****************************/
+    /************************ Ghost Spawning State ************************/
 
-    // Set the ghost spawning flag
-    pub fn setSpawning(&mut self, spawning: bool) {
+    pub fn set_spawning(&mut self, spawning: bool) {
         self.spawning = spawning;
     }
 
-    // Check if a ghost is spawning
-    pub fn isSpawning(&self) -> bool {
+    pub fn is_spawning(&self) -> bool {
         self.spawning
     }
 
-    /****************************** Ghost Eaten Flag ******************************/
+    /************************* Ghost Eaten Flag **************************/
 
-    // Set the ghost eaten flag
-    pub fn setEaten(&mut self, eaten: bool) {
+    pub fn set_eaten(&mut self, eaten: bool) {
         self.eaten = eaten;
     }
 
-    // Check if a ghost is eaten
-    pub fn isEaten(&self) -> bool {
+    pub fn is_eaten(&self) -> bool {
         self.eaten
     }
 }

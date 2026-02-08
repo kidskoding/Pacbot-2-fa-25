@@ -1,13 +1,17 @@
 use pyo3::prelude::*;
 
-mod state;
-mod ghost_state;
+pub mod constants;
+pub mod direction;
+pub mod location;
+pub mod ghost_state;
+pub mod ghost_helpers;
+pub mod state;
+pub mod game_modes;
+pub mod game_helpers;
+pub mod commands;
+pub mod logging;
+pub mod engine;
 mod pyo3_bindings;
-mod commands;
-mod location;
-mod logging;
-mod engine;
-mod direction;
 
 #[pymodule]
 pub fn game_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {

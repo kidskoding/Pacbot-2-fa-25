@@ -1,12 +1,15 @@
-# TODO.md 
+# TODO.md
 
 - [x] Do commands - Anirudh finished
-- [ ] Do Game Engine - Leo is working on atm
-- [ ] Do Helpers - Kalil is working on this atm
-- [x] Do Game State - Anirudh finished 
-- [ ] Do Game Modes
-- [ ] Do Ghost Helpers 
-- [x] Do Ghost State - Kalil finish
-- [x] Do Location - Anirudh finished
-- [x] Do Logging - Anirudh finished 
-- [ ] Do Variables/Constants - Anirudh is working
+- [x] Do Game Engine - Rewritten with tokio async
+- [x] Do Helpers (game_helpers.rs) - Full game logic ported from Go
+- [x] Do Game State - Rewritten with all fields matching Go
+- [x] Do Game Modes - Mode management ported from Go
+- [x] Do Ghost Helpers - Ghost AI ported from Go
+- [x] Do Ghost State - Rewritten without circular GameState dependency
+- [x] Do Location - Rewritten with full LocationState (row/col/dir)
+- [x] Do Logging - Anirudh finished
+- [x] Do Variables/Constants - All constants and maze data ported from Go
+- [x] Do Direction - Updated with PartialEq, reverse(), index conversions
+- [x] Do Serialization - JSON via serde_json
+- [x] Do PyO3 Bindings - All bindings rewritten (state, ghost, engine, location, direction, constants, logging)
